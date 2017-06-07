@@ -1,5 +1,5 @@
 TP2: main.o indice.o
-	gcc main.o indice.o -o TP2
+	gcc main.o indice.o -o vi
 main.o: main.c indice.o	
 		gcc -c main.c
 indice.o: indice.c indice.h
