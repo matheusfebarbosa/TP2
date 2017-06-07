@@ -10,6 +10,6 @@ typedef struct index{
 
 
 void updateIndex(FILE **index, FILE **data, int memLimit, int file);
-void sortIndex(FILE **index, int memLimit, int file);
+void createBlocks(FILE **index, int memLimit);
 void quickSort(Index *indexes, int front, int back);
 char* min(char *wordA, char *wordB);

@@ -18,17 +18,35 @@ void updateIndex(FILE **index, FILE **data, int memLimit, int file){
 	}
 }
 
-void sortIndex(FILE **index, int memLimit, int file){
-	int i, maxBuf = memLimit/sizeof(Index);
+void createBlocks(FILE **index, int memLimit){
+	int i=0, j=1, maxBuf = memLimit/sizeof(Index);
 	Index *indexes = (Index*) malloc(maxBuf* sizeof(Index));
-	for(i=0; i<maxBuf; i++){
-		fscanf(*index,"%s", indexes[i].word);
-		fscanf(*index,"%d", &(indexes[i].document));
-		fscanf(*index,"%d", &(indexes[i].frequency));
-		fscanf(*index,"%d", &(indexes[i].position));
-	} 
-
-	quickSort(indexes, 0, maxBuf);
+	FILE *fita = NULL;
+	char nome[20];
+	printf("show\n");
+	while(!feof(*index)){
+		sprintf(nome,".temp/f%d",j);	
+		fita = fopen(nome,"a");
+		printf("%p\n", fita);
+		for(i=0; !feof(*index) && i<maxBuf; i++){
+			fscanf(*index,"%s", indexes[i].word);
+			fscanf(*index,"%d", &(indexes[i].document));
+			fscanf(*index,"%d", &(indexes[i].frequency));
+			fscanf(*index,"%d", &(indexes[i].position));
+		}
+		printf("%s\n",nome);
+		quickSort(indexes, 0, i);
+		printf("show\n");
+		for(i=0; i<maxBuf-1; i++){
+			printf("daora\n");
+			fprintf(fita, "%s %d %d %d;", indexes[i].word, indexes[i].document,indexes[i].frequency, indexes[i].position);
+		}
+		printf("show\n");
+		fprintf(fita, "%s %d %d %d\n", indexes[maxBuf-1].word, indexes[maxBuf-1].document,indexes[maxBuf-1].frequency, indexes[maxBuf-1].position);
+		printf("show\n");
+		fclose(fita);
+		j = maxBuf%(j+1);
+	}	
 }
 
 void quickSort(Index *indexes, int front, int back){
