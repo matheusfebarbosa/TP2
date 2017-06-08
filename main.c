@@ -11,12 +11,13 @@ int main(){
 	scanf("%d %d %s %s", &d, &m, dirCvs, dirInd);
 	sprintf(indexAdr,"%sindex",dirInd);
 	index = fopen(indexAdr, "w");
+	long nIndex=0;
 	
 	for(i=1; i<=d; i++){
 		sprintf(histAdr,"%s%d",dirCvs,i);
 		chat = fopen(histAdr, "r");
 		
-		updateIndex(&index,&chat,m, i);
+		updateIndex(&index,&chat,m, i, &nIndex);
 
 		fclose(chat);
 	}
@@ -24,14 +25,17 @@ int main(){
 
 	index = fopen(indexAdr, "r");
 
-	createBlocks(&index,m);
+	createBlocks(&index,m,nIndex*32/m);
+
+	merge(&index,m);
 
 	fclose(index);
-	i=0;
+
+	/*i=0;
 	do{
 		sprintf(histAdr,"temp/f%d",i);
 		i++;
-	}while(remove(histAdr)!=-1);
+	}while(remove(histAdr)!=-1);*/
 
 	return 0;
 }

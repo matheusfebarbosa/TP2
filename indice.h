@@ -9,9 +9,10 @@ typedef struct index{
 } Index;
 
 
-void updateIndex(FILE **index, FILE **data, int memLimit, int file);
-void createBlocks(FILE **index, int memLimit);
+void updateIndex(FILE **index, FILE **data, int memLimit, int file, long *nIndex);
+void createBlocks(FILE **index, int memLimit, int nTapes);
 void merge(FILE **index, int memLimit);
 void heapSort(Index *indexes, int n);
 void maxHeapify(Index *indexes, int n);
-int less(char *wordA, char *wordB);
+short sLessThan(char *wordA, char *wordB);
+short iLessThan(Index *ia, Index *ib);
