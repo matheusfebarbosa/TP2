@@ -11,5 +11,7 @@ typedef struct index{
 
 void updateIndex(FILE **index, FILE **data, int memLimit, int file);
 void createBlocks(FILE **index, int memLimit);
-void quickSort(Index *indexes, int front, int back);
-char* min(char *wordA, char *wordB);
+void merge(FILE **index, int memLimit);
+void heapSort(Index *indexes, int n);
+void maxHeapify(Index *indexes, int n);
+int less(char *wordA, char *wordB);
