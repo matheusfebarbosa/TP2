@@ -27,22 +27,22 @@ int main(){
 
 	index = fopen(indexAdr, "r");
 
-	createBlocks(&index,m,m/32);
+	createBlocks(&index,m,N_TAPES/2);
 
 	fclose(index);
 
 	index = fopen(indexAdr, "w");
 
 	sR=0;
-	sW = m/32;
+	sW = N_TAPES/2;
 	
-	while(merge(m/32, sR,sW)!=1){
-		if(sW == m/32){
+	while(merge(N_TAPES/2, sR,sW)!=1){
+		if(sW == N_TAPES/2){
 			sW=0;
-			sR=m/32;
+			sR=N_TAPES/2;
 		}else{
 			sR=0;
-			sW = m/32;
+			sW = N_TAPES/2;
 		}
 	}
 

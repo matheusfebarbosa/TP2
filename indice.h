@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define N_TAPES 20
+
 typedef struct index{
 	char word[20];
 	int document;

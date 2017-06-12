@@ -25,7 +25,7 @@ void createBlocks(FILE **index, int memLimit, int nTapes){
 	char nome[20];
 
 	while(!feof(*index)){
-		sprintf(nome,"temp/f%d",j);	
+		sprintf(nome,"tmp/f%d",j);	
 		tape = fopen(nome,"a");
 		
 		for(i=0; i<memLimit/sizeof(Index); i++){
@@ -60,7 +60,7 @@ int merge(int iTapes, int firstRTape, int firstWTape){
 	Index *indexes = calloc(iTapes,sizeof(Index));
 	
 	for(i=firstRTape; i<firstRTape+iTapes; i++){
-		sprintf(name,"temp/f%d",i);	
+		sprintf(name,"tmp/f%d",i);	
 		tapes[i-firstRTape] = fopen(name,"r");
 	}
 
@@ -73,13 +73,17 @@ int merge(int iTapes, int firstRTape, int firstWTape){
 				rebuild++;     
 			}
 
-			j = (j+1)%(iTapes);	
-			sprintf(name,"temp/f%d",j+firstWTape);	
-			write = fopen(name,"a");
-
 			if(rebuild<iTapes){
+				if(rebuild==0){
+					break;
+				}
 				ordering=0;
 			}
+
+			j = (j+1)%(iTapes);	
+			sprintf(name,"tmp/f%d",j+firstWTape);	
+			write = fopen(name,"a");
+			
 		}
 
 		menor = min(indexes,iTapes);
@@ -106,7 +110,7 @@ int merge(int iTapes, int firstRTape, int firstWTape){
 
 	for(i=firstRTape; i<firstRTape+iTapes; i++){
 		if(tapes[i-firstRTape]!=NULL){
-			sprintf(name,"temp/f%d",i);
+			sprintf(name,"tmp/f%d",i);
 			remove(name);
 			fclose(tapes[i-firstRTape]);
 		}
@@ -121,7 +125,7 @@ void copyIndex(FILE **index, int nTape){
 	char name[20],c;
 	Index aux;
 	FILE *tape = NULL;
-	sprintf(name,"temp/f%d",nTape);	
+	sprintf(name,"tmp/f%d",nTape);	
 	tape = fopen(name,"r");
 	while(readNextIndex(&tape,&aux)==4){
 		printIndex(index,aux);
@@ -200,8 +204,6 @@ short iLessThan(Index *ia, Index *ib){
 		}else if((*ia).document>(*ib).document){
 			return 0;
 		}else{
-			/*(*ia).frequency++;
-			(*ib).frequency++;*/
 			if((*ia).position<(*ib).position){
 				return 1;
 			}else{
