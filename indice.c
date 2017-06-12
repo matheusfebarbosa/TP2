@@ -1,6 +1,6 @@
 #include "indice.h"
 
-void updateIndex(FILE **index, FILE **data, int file, long *nIndex){
+void updateIndex(FILE **index, FILE **data, int file){
 	char palavra[21];
 	int count=0, globalCount=0;
 
@@ -10,7 +10,6 @@ void updateIndex(FILE **index, FILE **data, int file, long *nIndex){
 		if(palavra[count] == ' ' || palavra[count] == '\n')	{
 			palavra[count] = '\0';
 			fprintf(*index, "%s %d %d %d\n", palavra, file,1, globalCount-count);
-			(*nIndex)++;
 			count = -1;
 		}
 
@@ -24,7 +23,6 @@ void createBlocks(FILE **index, int memLimit, int nTapes){
 	Index *indexes = (Index*) malloc((memLimit/sizeof(Index))* sizeof(Index));
 	FILE *tape = NULL;
 	char nome[20];
-
 
 	while(!feof(*index)){
 		sprintf(nome,"temp/f%d",j);	
@@ -52,14 +50,14 @@ void createBlocks(FILE **index, int memLimit, int nTapes){
 	free(indexes);
 }
 
-void merge(int iTapes, int firstRTape, int firstWTape){
+int merge(int iTapes, int firstRTape, int firstWTape){
 	int i,j=-1,menor;
-	short rebuild=0,ordering=1;
+	short rebuild=0,ordering=1, nMerges=0;
 
 	char name[20], op=' ';
 	FILE **tapes = (FILE**) malloc(iTapes* sizeof(FILE*));
 	FILE *write = NULL;
-	Index *indexes = (Index*) malloc(iTapes* sizeof(Index));
+	Index *indexes = calloc(iTapes,sizeof(Index));
 	
 	for(i=firstRTape; i<firstRTape+iTapes; i++){
 		sprintf(name,"temp/f%d",i);	
@@ -68,8 +66,7 @@ void merge(int iTapes, int firstRTape, int firstWTape){
 
 	while(ordering || rebuild){
 		if(rebuild<=0){
-			printf("ola\n");
-			for(i=firstRTape; i<firstRTape+iTapes; i++){
+			for(i=firstRTape; i<firstRTape+iTapes && tapes[i-firstRTape]!=NULL; i++){
 				if(readNextIndex(&tapes[i-firstRTape], &indexes[i-firstRTape])!=4){
 					break;
 				}
@@ -80,17 +77,17 @@ void merge(int iTapes, int firstRTape, int firstWTape){
 			sprintf(name,"temp/f%d",j+firstWTape);	
 			write = fopen(name,"a");
 
-			printf("Rebuild: %d\n",rebuild);
 			if(rebuild<iTapes){
 				ordering=0;
 			}
 		}
 
-		menor = min(indexes,rebuild);
+		menor = min(indexes,iTapes);
 		printIndex(&write,indexes[menor]);		
 
 		fscanf(tapes[menor],"%c",&op);
 
+		
 		if(op==';'){
 			readNextIndex(&tapes[menor], &indexes[menor]);
 			fprintf(write, ";");
@@ -98,17 +95,41 @@ void merge(int iTapes, int firstRTape, int firstWTape){
 			indexes[menor].frequency=-1;
 			rebuild--;
 			if(rebuild<=0){
+				nMerges++;
 				fprintf(write, "\n");			
 				fclose(write);
+			}else{
+				fprintf(write, ";");
 			}
 		}
 	}
 
 	for(i=firstRTape; i<firstRTape+iTapes; i++){
-		fclose(tapes[i-firstRTape]);
+		if(tapes[i-firstRTape]!=NULL){
+			sprintf(name,"temp/f%d",i);
+			remove(name);
+			fclose(tapes[i-firstRTape]);
+		}
 	}
 
 	free(indexes);
+
+	return nMerges;
+}
+
+void copyIndex(FILE **index, int nTape){
+	char name[20],c;
+	Index aux;
+	FILE *tape = NULL;
+	sprintf(name,"temp/f%d",nTape);	
+	tape = fopen(name,"r");
+	while(readNextIndex(&tape,&aux)==4){
+		printIndex(index,aux);
+		fprintf(*index, "\n");
+		fscanf(tape,"%c",&c);	
+	}
+	remove(name);
+	fclose(tape);
 }
 
 void heapSort(Index *indexes, int n){
@@ -179,8 +200,8 @@ short iLessThan(Index *ia, Index *ib){
 		}else if((*ia).document>(*ib).document){
 			return 0;
 		}else{
-			(*ia).frequency++;
-			(*ib).frequency++;
+			/*(*ia).frequency++;
+			(*ib).frequency++;*/
 			if((*ia).position<(*ib).position){
 				return 1;
 			}else{
@@ -206,15 +227,13 @@ void printIndex(FILE **tape, Index index){
 
 int min(Index *indexes, int n){
 	int i,menor=-1;
-
 	for(i=0; i<n; i++){
-		if(indexes[i].frequency==-1){
+		if(indexes[i].frequency==-1 || indexes[i].frequency==0){
 			continue;
 		}
 		if(menor==-1 || iLessThan(&indexes[i],&indexes[menor])){
 			menor=i;
 		}
 	}
-
 	return menor;
 }

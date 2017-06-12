@@ -8,16 +8,18 @@ int main(){
 	char dirCvs[50], dirInd[50],histAdr[52], indexAdr[56];
 	FILE *chat =  NULL;
 	FILE *index = NULL;
+	int sR,sW;
+
 	scanf("%d %d %s %s", &d, &m, dirCvs, dirInd);
 	sprintf(indexAdr,"%sindex",dirInd);
 	index = fopen(indexAdr, "w");
-	long nIndex=0;
+	
 	
 	for(i=1; i<=d; i++){
 		sprintf(histAdr,"%s%d",dirCvs,i);
 		chat = fopen(histAdr, "r");
 		
-		updateIndex(&index, &chat, i, &nIndex);
+		updateIndex(&index, &chat, i);
 
 		fclose(chat);
 	}
@@ -25,17 +27,28 @@ int main(){
 
 	index = fopen(indexAdr, "r");
 
-	createBlocks(&index,m,nIndex*32/m);
-
-	merge(m/32, 0,m/32);
+	createBlocks(&index,m,m/32);
 
 	fclose(index);
 
-	/*i=0;
-	do{
-		sprintf(histAdr,"temp/f%d",i);
-		i++;
-	}while(remove(histAdr)!=-1);*/
+	index = fopen(indexAdr, "w");
+
+	sR=0;
+	sW = m/32;
+	
+	while(merge(m/32, sR,sW)!=1){
+		if(sW == m/32){
+			sW=0;
+			sR=m/32;
+		}else{
+			sR=0;
+			sW = m/32;
+		}
+	}
+
+	copyIndex(&index,sW);
+
+	fclose(index);
 
 	return 0;
 }
