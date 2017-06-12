@@ -17,7 +17,7 @@ int main(){
 		sprintf(histAdr,"%s%d",dirCvs,i);
 		chat = fopen(histAdr, "r");
 		
-		updateIndex(&index,&chat,m, i, &nIndex);
+		updateIndex(&index, &chat, i, &nIndex);
 
 		fclose(chat);
 	}
@@ -27,7 +27,7 @@ int main(){
 
 	createBlocks(&index,m,nIndex*32/m);
 
-	merge(&index,m);
+	merge(m/32, 0,m/32);
 
 	fclose(index);
 

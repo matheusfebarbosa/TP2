@@ -1,6 +1,6 @@
 #include "indice.h"
 
-void updateIndex(FILE **index, FILE **data, int memLimit, int file, long *nIndex){
+void updateIndex(FILE **index, FILE **data, int file, long *nIndex){
 	char palavra[21];
 	int count=0, globalCount=0;
 
@@ -20,106 +20,95 @@ void updateIndex(FILE **index, FILE **data, int memLimit, int file, long *nIndex
 }
 
 void createBlocks(FILE **index, int memLimit, int nTapes){
-	int i=0, j=0, maxBuf = memLimit/sizeof(Index);
-	Index *indexes = (Index*) malloc(maxBuf* sizeof(Index));
+	unsigned int i=0, j=0, k=0;
+	Index *indexes = (Index*) malloc((memLimit/sizeof(Index))* sizeof(Index));
 	FILE *tape = NULL;
 	char nome[20];
+
 
 	while(!feof(*index)){
 		sprintf(nome,"temp/f%d",j);	
 		tape = fopen(nome,"a");
 		
-		for(i=0; !feof(*index) && i<maxBuf; i++){
-			fscanf(*index,"%s", indexes[i].word);
-			fscanf(*index,"%d", &(indexes[i].document));
-			fscanf(*index,"%d", &(indexes[i].frequency));
-			fscanf(*index,"%d", &(indexes[i].position));
+		for(i=0; i<memLimit/sizeof(Index); i++){
+			if(readNextIndex(index,&indexes[i])!=4)
+				break;
 		}
 
 		heapSort(indexes, i);
 
-		for(i=0; i<maxBuf-1; i++){
-			fprintf(tape, "%s %d %d %d;", indexes[i].word, indexes[i].document,indexes[i].frequency, indexes[i].position);
+		for(k=0; k<i-1; k++){
+			printIndex(&tape, indexes[k]);
+			fprintf(tape, ";");
 		}
-		fprintf(tape, "%s %d %d %d\n", indexes[maxBuf-1].word, indexes[maxBuf-1].document,indexes[maxBuf-1].frequency, indexes[maxBuf-1].position);
+		printIndex(&tape, indexes[k]);
+		fprintf(tape, "\n");
 		
 		fclose(tape);
 
 		j = (j+1)%nTapes;
 	}
 
+	free(indexes);
 }
 
-void merge(FILE **index, int memLimit){
-	int maxBuf = memLimit/sizeof(Index);
-	int i,j, reset=0, finish = 0;
-	FILE *tape = NULL;
-	char name[20];
-	char c;
-	Index *indexes = (Index*) malloc(maxBuf* sizeof(Index));
+void merge(int iTapes, int firstRTape, int firstWTape){
+	int i,j=-1,menor;
+	short rebuild=0,ordering=1;
 
-	for(i=0,j=0; j<maxBuf; i++,j++){
+	char name[20], op=' ';
+	FILE **tapes = (FILE**) malloc(iTapes* sizeof(FILE*));
+	FILE *write = NULL;
+	Index *indexes = (Index*) malloc(iTapes* sizeof(Index));
+	
+	for(i=firstRTape; i<firstRTape+iTapes; i++){
 		sprintf(name,"temp/f%d",i);	
-		tape = fopen(name,"r");
-
-		fscanf(tape,"%s", indexes[i].word);
-		fscanf(tape,"%d", &(indexes[i].document));
-		fscanf(tape,"%d", &(indexes[i].frequency));
-		fscanf(tape,"%d", &(indexes[i].position));
-
-		fclose(tape);
+		tapes[i-firstRTape] = fopen(name,"r");
 	}
 
-	while(1){
-		j=0;
-		reset=1;
-		
-		
-		for(i=0; i<maxBuf; i++){
-			if(indexes[i].document!=-1){
-				reset=0;
-				if(iLessThan(indexes+i,indexes+j))
-					j=i;
-			}
-		}
-
-		if(reset=1){
-			for(i=0,j=0; j<maxBuf; i++,j++){
-				sprintf(name,"temp/f%d",i);	
-				tape = fopen(name,"r");
-				if(feof(tape)){
-					finish=1;
+	while(ordering || rebuild){
+		if(rebuild<=0){
+			printf("ola\n");
+			for(i=firstRTape; i<firstRTape+iTapes; i++){
+				if(readNextIndex(&tapes[i-firstRTape], &indexes[i-firstRTape])!=4){
 					break;
 				}
-				fscanf(tape,"%s", indexes[i].word);
-				fscanf(tape,"%d", &(indexes[i].document));
-				fscanf(tape,"%d", &(indexes[i].frequency));
-				fscanf(tape,"%d", &(indexes[i].position));
-
-				fclose(tape);
+				rebuild++;     
 			}
-			continue;
+
+			j = (j+1)%(iTapes);	
+			sprintf(name,"temp/f%d",j+firstWTape);	
+			write = fopen(name,"a");
+
+			printf("Rebuild: %d\n",rebuild);
+			if(rebuild<iTapes){
+				ordering=0;
+			}
 		}
 
-		fprintf(*index, "%s %d %d %d\n", indexes[j].word, indexes[j].document,indexes[j].frequency, indexes[j].position);
+		menor = min(indexes,rebuild);
+		printIndex(&write,indexes[menor]);		
 
-		sprintf(name,"temp/f%d",i);	
-		tape = fopen(name,"r");
+		fscanf(tapes[menor],"%c",&op);
 
-		fscanf(tape,"%c",&c);
-		if(c!='\n'){
-			fscanf(tape,"%s", indexes[j].word);
-			fscanf(tape,"%d", &(indexes[j].document));
-			fscanf(tape,"%d", &(indexes[j].frequency));
-			fscanf(tape,"%d", &(indexes[j].position));	
+		if(op==';'){
+			readNextIndex(&tapes[menor], &indexes[menor]);
+			fprintf(write, ";");
 		}else{
-			indexes[j].document=-1;
+			indexes[menor].frequency=-1;
+			rebuild--;
+			if(rebuild<=0){
+				fprintf(write, "\n");			
+				fclose(write);
+			}
 		}
-		fclose(tape);
-
-		if(finish)
-			break;
 	}
+
+	for(i=firstRTape; i<firstRTape+iTapes; i++){
+		fclose(tapes[i-firstRTape]);
+	}
+
+	free(indexes);
 }
 
 void heapSort(Index *indexes, int n){
@@ -199,4 +188,33 @@ short iLessThan(Index *ia, Index *ib){
 			}
 		}
 	}
+}
+
+int readNextIndex(FILE **tape, Index *index){
+	return fscanf(*tape,"%s %d %d %d", index->word,
+		&(index->document),
+		&(index->frequency),
+		&(index->position));
+}
+
+void printIndex(FILE **tape, Index index){
+	fprintf(*tape, "%s %d %d %d", index.word, 
+			index.document,
+			index.frequency, 
+			index.position);
+}
+
+int min(Index *indexes, int n){
+	int i,menor=-1;
+
+	for(i=0; i<n; i++){
+		if(indexes[i].frequency==-1){
+			continue;
+		}
+		if(menor==-1 || iLessThan(&indexes[i],&indexes[menor])){
+			menor=i;
+		}
+	}
+
+	return menor;
 }
