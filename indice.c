@@ -36,10 +36,10 @@ void createBlocks(FILE **index, int memLimit, int nTapes){
 		heapSort(indexes, i);
 
 		for(k=0; k<i-1; k++){
-			printIndex(&tape, indexes[k]);
+			printIndex(&tape, indexes[k], ' ');
 			fprintf(tape, ";");
 		}
-		printIndex(&tape, indexes[k]);
+		printIndex(&tape, indexes[k], ' ');
 		fprintf(tape, "\n");
 		
 		fclose(tape);
@@ -87,7 +87,7 @@ int merge(int iTapes, int firstRTape, int firstWTape){
 		}
 
 		menor = min(indexes,iTapes);
-		printIndex(&write,indexes[menor]);		
+		printIndex(&write, indexes[menor], ' ');		
 
 		fscanf(tapes[menor],"%c",&op);
 
@@ -123,17 +123,42 @@ int merge(int iTapes, int firstRTape, int firstWTape){
 
 void copyIndex(FILE **index, int nTape){
 	char name[20],c;
-	Index aux;
-	FILE *tape = NULL;
+	int count=1,i;
+	Index actual, prox;
+	FILE *rTape = NULL, *cTape = NULL;
+	
 	sprintf(name,"tmp/f%d",nTape);	
-	tape = fopen(name,"r");
-	while(readNextIndex(&tape,&aux)==4){
-		printIndex(index,aux);
-		fprintf(*index, "\n");
-		fscanf(tape,"%c",&c);	
+	
+	rTape = fopen(name,"r");
+	cTape = fopen(name,"r");
+
+	readNextIndex(&cTape, &actual);
+	fscanf(cTape, "%c",  &c);
+	while(1){
+		readNextIndex(&cTape, &prox);
+		
+		if(!feof(cTape) && sLessThan(actual.word,prox.word)==-1 && actual.document == prox.document){
+			count++;
+		}else{
+			for(i=0; i<count; i++){
+				readNextIndex(&rTape, &actual);
+				fscanf(rTape, "%c",  &c);
+				actual.frequency = count;
+				printIndex(index, actual, ',');
+				fprintf(*index, "\n");
+			}
+			if(feof(cTape))
+				break;
+			count=1;
+		}
+
+		actual = prox;
+		fscanf(cTape, "%c",  &c);
 	}
+
 	remove(name);
-	fclose(tape);
+	fclose(cTape);
+	fclose(rTape);
 }
 
 void heapSort(Index *indexes, int n){
@@ -220,10 +245,13 @@ int readNextIndex(FILE **tape, Index *index){
 		&(index->position));
 }
 
-void printIndex(FILE **tape, Index index){
-	fprintf(*tape, "%s %d %d %d", index.word, 
+void printIndex(FILE **tape, Index index, char append){
+	fprintf(*tape, "%s%c%d%c%d%c%d", index.word,
+			append, 
 			index.document,
+			append,
 			index.frequency, 
+			append,
 			index.position);
 }
 

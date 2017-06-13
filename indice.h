@@ -20,5 +20,5 @@ short sLessThan(char *wordA, char *wordB);
 short iLessThan(Index *ia, Index *ib);
 int min(Index *indexes, int n);
 int readNextIndex(FILE **tape, Index *index);
-void printIndex(FILE **tape, Index index);
+void printIndex(FILE **tape, Index index, char append);
 void copyIndex(FILE **index, int nTape);
