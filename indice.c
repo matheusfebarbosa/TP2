@@ -160,39 +160,45 @@ void copyIndex(FILE **index, int nTape){
 
 void heapSort(Index *indexes, int n){
 	Index aux;
+	buildHeap(indexes, n);
 	while(n>1){
-		maxHeapify(indexes, n);
 		aux = indexes[n-1];
 		indexes[n-1] = indexes[0];
 		indexes[0] = aux;
 		n--;
+		maxHeapify(indexes, n, 0);
 	}
 }
 
-void maxHeapify(Index *indexes, int n){
-	int father, son, i;
-	Index aux;
+void buildHeap(Index *indexes, int n){
+	int i;
 	for(i=n/2; i>=0; i--){
-		father=i;
-		son= 2*i +1;
-		aux = indexes[father];
+		maxHeapify(indexes,n,i);
+	}	
+}
 
-		while(son<n){
-			if(son+1<n && iLessThan(indexes+son,indexes+son+1)){
-				son++;
-			}
+void maxHeapify(Index *indexes, int n, int father){
+	int son;
+	Index aux;
+	
+	son= 2*father +1;
+	aux = indexes[father];
 
-			if(iLessThan(&aux,indexes+son)){
-				indexes[father] = indexes[son];
-				father = son;
-				son = 2*father +1;
-			}else{
-				break;
-			}
+	while(son<n){
+		if(son+1<n && iLessThan(indexes+son,indexes+son+1)){
+			son++;
 		}
 
-		indexes[father] = aux;
-	}	
+		if(iLessThan(&aux,indexes+son)){
+			indexes[father] = indexes[son];
+			father = son;
+			son = 2*father +1;
+		}else{
+			break;
+		}
+	}
+
+	indexes[father] = aux;		
 }
 
 short sLessThan(char *wordA, char *wordB){
