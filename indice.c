@@ -53,7 +53,6 @@ void createBlocks(FILE **index, int memLimit, int nTapes){
 int merge(int iTapes, int firstRTape, int firstWTape){
 	int i,j=-1,menor;
 	short rebuild=0,ordering=1, nMerges=0;
-
 	char name[20], op=' ';
 	FILE **tapes = (FILE**) malloc(iTapes* sizeof(FILE*));
 	FILE *write = NULL;
@@ -88,10 +87,8 @@ int merge(int iTapes, int firstRTape, int firstWTape){
 
 		menor = min(indexes,iTapes);
 		printIndex(&write, indexes[menor], ' ');		
-
 		fscanf(tapes[menor],"%c",&op);
 
-		
 		if(op==';'){
 			readNextIndex(&tapes[menor], &indexes[menor]);
 			fprintf(write, ";");
