@@ -1,6 +1,6 @@
 #include "ExternalSorting.h"
 
-void updateIndex(FILE **index, FILE **data, int file){
+void updateUnsortedIndex(FILE **index, FILE **data, int file){
 	char palavra[21];
 	int count=0, globalCount=0;
 
@@ -46,7 +46,6 @@ void createBlocks(FILE **index, int memLimit, int nTapes){
 
 		j = (j+1)%nTapes;
 	}
-
 	free(indexes);
 }
 
@@ -118,7 +117,7 @@ int merge(int iTapes, int firstRTape, int firstWTape){
 	return nMerges;
 }
 
-void copyIndex(FILE **index, int nTape){
+void countFrequency(FILE **index, int nTape){
 	char name[20],c;
 	int count=1,i;
 	Index actual, prox;

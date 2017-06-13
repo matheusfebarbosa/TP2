@@ -20,7 +20,7 @@ int main(){
 		sprintf(histAdr,"%s%d",dirCvs,i);
 		chat = fopen(histAdr, "r");
 		
-		updateIndex(&index, &chat, i);
+		updateUnsortedIndex(&index, &chat, i);
 
 		fclose(chat);
 	}
@@ -53,7 +53,7 @@ int main(){
 		}
 	}
 
-	copyIndex(&index,sW);
+	countFrequency(&index,sW);
 
 	fclose(index);
 

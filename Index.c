@@ -27,7 +27,7 @@ int readNextIndex(FILE **tape, Index *index){
 }
 
 void printIndex(FILE **tape, Index index, char append){
-	fprintf(*tape, "%s%c%d%c%d%c%d", index.word,
+	fprintf(*tape, "%.20s%c%d%c%d%c%d",index.word,
 			append, 
 			index.document,
 			append,
