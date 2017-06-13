@@ -1,0 +1,1 @@
+short sLessThan(char *wordA, char *wordB);

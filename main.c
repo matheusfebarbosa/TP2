@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "indice.h"
+#include "ExternalSorting.h"
 
 int main(){
 
@@ -9,6 +9,7 @@ int main(){
 	FILE *chat =  NULL;
 	FILE *index = NULL;
 	int sR,sW;
+	short nTapes;
 
 	scanf("%d %d %s %s", &d, &m, dirCvs, dirInd);
 	sprintf(indexAdr,"%sindex",dirInd);
@@ -27,22 +28,28 @@ int main(){
 
 	index = fopen(indexAdr, "r");
 
-	createBlocks(&index,m,N_TAPES/2);
+	if(MAX_TAPES<m/sizeof(Index)){
+		nTapes = MAX_TAPES;
+	}else{
+		nTapes = 2*(m/sizeof(Index));
+	}
+
+	createBlocks(&index,m,nTapes/2);
 
 	fclose(index);
 
 	index = fopen(indexAdr, "w");
 
 	sR=0;
-	sW = N_TAPES/2;
+	sW = nTapes/2;
 	
-	while(merge(N_TAPES/2, sR,sW)!=1){
-		if(sW == N_TAPES/2){
+	while(merge(nTapes/2, sR,sW)!=1){
+		if(sW == nTapes/2){
 			sW=0;
-			sR=N_TAPES/2;
+			sR=nTapes/2;
 		}else{
 			sR=0;
-			sW = N_TAPES/2;
+			sW = nTapes/2;
 		}
 	}
 
