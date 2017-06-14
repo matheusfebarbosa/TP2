@@ -1,20 +1,22 @@
 #include "ExternalSorting.h"
 
 void updateUnsortedIndex(FILE **index, FILE **data, int file){
-	char palavra[21];
+	char palavra[21], c;
 	int count=0, globalCount=0;
 
 	while(!feof(*data)){
-		fscanf(*data, "%c", palavra+count);
-
-		if(palavra[count] == ' ' || palavra[count] == '\n')	{
-			palavra[count] = '\0';
-			fprintf(*index, "%s %d %d %d\n", palavra, file,1, globalCount-count);
-			count = -1;
+		fscanf(*data, "%c", &c);
+		if((c != ' ' && c != '\n')){
+			palavra[count] = c;
+			count++;
+		}else{
+			if(count>0){
+				palavra[count] = '\0';
+				fprintf(*index, "%s %d %d %d\n", palavra, file,1, globalCount-count);
+				count = 0;
+			}
 		}
-
 		globalCount++;
-		count++;
 	}
 }
 
@@ -50,7 +52,7 @@ void createBlocks(FILE **index, int memLimit, int nTapes){
 }
 
 int merge(int iTapes, int firstRTape, int firstWTape){
-	int i,j=-1,menor;
+	int i=0,j=-1,menor=0;
 	short rebuild=0,ordering=1, nMerges=0;
 	char name[20], op=' ';
 	FILE **tapes = (FILE**) malloc(iTapes* sizeof(FILE*));
@@ -111,9 +113,9 @@ int merge(int iTapes, int firstRTape, int firstWTape){
 			fclose(tapes[i-firstRTape]);
 		}
 	}
-
+	
+	free(tapes);
 	free(indexes);
-
 	return nMerges;
 }
 
